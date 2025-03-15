@@ -52,14 +52,40 @@ export default function SignUp() {
         throw new Error(data.message || "Something went wrong");
       }
 
+      // Log the response data for debugging
+      console.log("Signup response:", data);
+
+      // Validate user data before storing
+      if (!data.user || !data.token) {
+        console.error("Invalid response structure:", data);
+        throw new Error("Invalid response from server");
+      }
+
+      const { user, token } = data;
+
+      // Validate required user fields
+      if (!user._id || !user.username || !user.email) {
+        console.error("Missing required user fields:", user);
+        throw new Error("Invalid user data received");
+      }
+
       // Store token and user data in localStorage
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role || "user",
+        })
+      );
 
       // Redirect to dashboard
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      console.error("Signup error:", err);
+      setError(err.message || "Failed to create account");
     } finally {
       setLoading(false);
     }

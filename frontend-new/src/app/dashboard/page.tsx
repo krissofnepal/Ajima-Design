@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface User {
-  id: string;
+  _id: string;
   username: string;
   email: string;
   role: string;
@@ -26,7 +26,16 @@ export default function Dashboard() {
 
     // Get user data from token
     try {
-      const userData = JSON.parse(localStorage.getItem("user") || "");
+      const userDataStr = localStorage.getItem("user");
+      if (!userDataStr) {
+        router.push("/login");
+        return;
+      }
+      const userData = JSON.parse(userDataStr);
+      if (!userData || !userData._id) {
+        router.push("/login");
+        return;
+      }
       setUser(userData);
     } catch (error) {
       console.error("Error parsing user data:", error);
@@ -105,12 +114,16 @@ export default function Dashboard() {
                 <button className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
                   Edit Profile
                 </button>
-                <button className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">
-                  View Projects
-                </button>
-                <button className="w-full bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors">
-                  Create New Project
-                </button>
+                <Link href="/dashboard/applications" className="block">
+                  <button className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">
+                    View Valuation Reports
+                  </button>
+                </Link>
+                <Link href="/dashboard/create-application" className="block">
+                  <button className="w-full bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors">
+                    Create New Valuation Report
+                  </button>
+                </Link>
               </div>
             </div>
 

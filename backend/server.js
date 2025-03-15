@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const authRoutes = require("./routes/auth");
+const applicationRoutes = require("./routes/applications");
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +23,7 @@ mongoose
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/applications", applicationRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to Ajima Construction API" });
