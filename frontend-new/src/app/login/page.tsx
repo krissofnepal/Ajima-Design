@@ -40,11 +40,12 @@ export default function Login() {
         throw new Error(data.message || "Something went wrong");
       }
 
-      // Store token in localStorage
+      // Store token and user data in localStorage
       localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Redirect to home page
-      router.push("/");
+      // Redirect to dashboard
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {
