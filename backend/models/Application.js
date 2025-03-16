@@ -122,6 +122,10 @@ const ApplicationSchema = new mongoose.Schema({
     enum: ["pending", "approved", "rejected", "in-progress", "completed"],
     default: "pending",
   },
+  adminNote: {
+    type: String,
+    default: "",
+  },
   createdAt: {
     type: Date,
     default: Date.now,

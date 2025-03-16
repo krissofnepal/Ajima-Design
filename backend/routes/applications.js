@@ -5,6 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const Application = require("../models/Application");
 const auth = require("../middleware/auth");
+const User = require("../models/User");
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
@@ -318,6 +319,52 @@ router.delete("/:id", auth, async (req, res) => {
       message: "Server error",
       error: err.message,
     });
+  }
+});
+
+// @route   PUT api/applications/:id/status
+// @desc    Update application status
+// @access  Private
+router.put("/:id/status", auth, async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    // Validate status
+    if (
+      !["pending", "approved", "rejected", "in-progress", "completed"].includes(
+        status
+      )
+    ) {
+      return res.status(400).json({ msg: "Invalid status value" });
+    }
+
+    const application = await Application.findById(req.params.id);
+
+    if (!application) {
+      return res.status(404).json({ msg: "Application not found" });
+    }
+
+    // Check if the user owns the application or is an admin
+    if (application.user.toString() !== req.user.id) {
+      const user = await User.findById(req.user.id);
+      if (!user || user.role !== "admin") {
+        return res
+          .status(401)
+          .json({ msg: "Not authorized to update this application" });
+      }
+    }
+
+    // Update status
+    application.status = status;
+    await application.save();
+
+    res.json({ application });
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === "ObjectId") {
+      return res.status(404).json({ msg: "Application not found" });
+    }
+    res.status(500).send("Server Error");
   }
 });
 

@@ -69,7 +69,7 @@ export default function Login() {
         })
       );
 
-      // Redirect to dashboard
+      // Redirect to dashboard - it will show admin panel for admin users
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Login error:", err);
