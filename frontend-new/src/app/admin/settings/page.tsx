@@ -24,7 +24,7 @@ export default function AdminSettingsPage() {
     maintenanceMode: false,
     defaultCurrency: "NPR",
     allowUserRegistration: true,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
   });
 
   useEffect(() => {

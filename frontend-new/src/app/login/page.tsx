@@ -86,13 +86,7 @@ export default function Login() {
           Sign in to your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Or{" "}
-          <Link
-            href="/signup"
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            create a new account
-          </Link>
+          Please contact an administrator to create an account
         </p>
       </div>
 

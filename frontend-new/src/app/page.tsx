@@ -48,12 +48,6 @@ export default function Home() {
               >
                 Login
               </Link>
-              <Link
-                href="/signup"
-                className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg"
-              >
-                Sign Up
-              </Link>
             </div>
             <div className="md:hidden flex items-center">
               <button

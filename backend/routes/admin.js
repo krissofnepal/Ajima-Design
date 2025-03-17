@@ -163,4 +163,109 @@ router.put("/applications/:id/status", auth, adminAuth, async (req, res) => {
   }
 });
 
+// @route   POST api/admin/users
+// @desc    Create a new user (admin only)
+// @access  Admin
+router.post("/users", auth, adminAuth, async (req, res) => {
+  try {
+    const { username, email, password, role } = req.body;
+
+    // Validate input
+    if (!username || !email || !password) {
+      return res.status(400).json({ msg: "Please enter all required fields" });
+    }
+
+    // Check if user already exists
+    let user = await User.findOne({ $or: [{ email }, { username }] });
+    if (user) {
+      return res
+        .status(400)
+        .json({ msg: "User with this email or username already exists" });
+    }
+
+    // Create new user
+    user = new User({
+      username,
+      email,
+      password,
+      role: role || "user",
+    });
+
+    await user.save();
+
+    // Return user without password
+    const userResponse = await User.findById(user._id).select("-password");
+    res.status(201).json({ user: userResponse });
+  } catch (err) {
+    console.error("Error creating user:", err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+// @route   PUT api/admin/users/:id/role
+// @desc    Update user role (admin only)
+// @access  Admin
+router.put("/users/:id/role", auth, adminAuth, async (req, res) => {
+  try {
+    const { role } = req.body;
+
+    // Validate role
+    if (!["user", "admin"].includes(role)) {
+      return res.status(400).json({ msg: "Invalid role value" });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Update role
+    user.role = role;
+    await user.save();
+
+    // Return user without password
+    const userResponse = await User.findById(user._id).select("-password");
+    res.json({ user: userResponse });
+  } catch (err) {
+    console.error("Error updating user role:", err.message);
+    if (err.kind === "ObjectId") {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    res.status(500).send("Server Error");
+  }
+});
+
+// @route   DELETE api/admin/users/:id
+// @desc    Delete a user (admin only)
+// @access  Admin
+router.delete("/users/:id", auth, adminAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Don't allow deleting the last admin
+    if (user.role === "admin") {
+      const adminCount = await User.countDocuments({ role: "admin" });
+      if (adminCount <= 1) {
+        return res
+          .status(400)
+          .json({ msg: "Cannot delete the last admin user" });
+      }
+    }
+
+    await user.deleteOne();
+    res.json({ msg: "User deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting user:", err.message);
+    if (err.kind === "ObjectId") {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    res.status(500).send("Server Error");
+  }
+});
+
 module.exports = router;
