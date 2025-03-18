@@ -67,8 +67,10 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 // Create superadmin if not exists
 userSchema.statics.createSuperAdmin = async function () {
   try {
+    console.log("Checking for existing superadmin...");
     const superadmin = await this.findOne({ role: "superadmin" });
     if (!superadmin) {
+      console.log("No superadmin found. Creating new superadmin...");
       const newSuperAdmin = new this({
         username: "prabesh",
         email: "prabesh@ajimadesign.com",
@@ -77,10 +79,20 @@ userSchema.statics.createSuperAdmin = async function () {
         isSuperAdmin: true,
       });
       await newSuperAdmin.save();
-      console.log("Superadmin created successfully");
+      console.log("Superadmin created successfully:", {
+        username: newSuperAdmin.username,
+        email: newSuperAdmin.email,
+        role: newSuperAdmin.role,
+      });
+    } else {
+      console.log("Superadmin already exists:", {
+        username: superadmin.username,
+        email: superadmin.email,
+        role: superadmin.role,
+      });
     }
   } catch (error) {
-    console.error("Error creating superadmin:", error);
+    console.error("Error in createSuperAdmin:", error);
   }
 };
 
