@@ -25,8 +25,16 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "admin", "superadmin"],
       default: "user",
+    },
+    isSuperAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    lastLogin: {
+      type: Date,
+      default: null,
     },
   },
   {
@@ -47,15 +55,38 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// Method to compare password
+// Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
-    throw new Error("Error comparing passwords");
+    throw error;
+  }
+};
+
+// Create superadmin if not exists
+userSchema.statics.createSuperAdmin = async function () {
+  try {
+    const superadmin = await this.findOne({ role: "superadmin" });
+    if (!superadmin) {
+      const newSuperAdmin = new this({
+        username: "prabesh",
+        email: "prabesh@ajimadesign.com",
+        password: "Ajima@123", // This will be hashed automatically
+        role: "superadmin",
+        isSuperAdmin: true,
+      });
+      await newSuperAdmin.save();
+      console.log("Superadmin created successfully");
+    }
+  } catch (error) {
+    console.error("Error creating superadmin:", error);
   }
 };
 
 const User = mongoose.model("User", userSchema);
+
+// Create superadmin when the model is first loaded
+User.createSuperAdmin();
 
 module.exports = User;
