@@ -65,7 +65,7 @@ export default function ApplicationDetailPage() {
     const fetchApplication = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/applications/${params.id}`,
+          `https://ajima-design.onrender.com/api/applications/${params.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

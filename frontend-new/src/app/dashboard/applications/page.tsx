@@ -68,10 +68,8 @@ export default function ApplicationsPage() {
         try {
           // Use different endpoints for admin and regular users
           const endpoint = userIsAdmin
-            ? "https://ajima-design.onrender.com/api/admin/applications" // Admin endpoint to fetch all reports
-            : "https://ajima-design.onrender.com/api/applications"; // Regular endpoint for user's own reports
-            ? "https://ajima-design.onrender.com/api/admin/applications" // Admin endpoint on Render
-            : "https://ajima-design.onrender.com/api/applications"; // Regular endpoint on Render
+            ? "https://ajima-design.onrender.com/api/admin/applications"
+            : "https://ajima-design.onrender.com/api/applications";
 
           const response = await fetch(endpoint, {
             headers: {

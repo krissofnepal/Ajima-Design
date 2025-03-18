@@ -62,7 +62,7 @@ export default function AdminReportsPage() {
       const fetchApplications = async () => {
         try {
           const response = await fetch(
-            "http://localhost:5000/api/admin/applications",
+            "https://ajima-design.onrender.com/api/admin/applications",
             {
               headers: {
                 Authorization: `Bearer ${token}`,

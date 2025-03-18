@@ -178,13 +178,16 @@ export default function CreateApplicationForm() {
       }
 
       // Submit to API
-      const response = await fetch("http://localhost:5000/api/applications", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: submitData,
-      });
+      const response = await fetch(
+        "https://ajima-design.onrender.com/api/applications",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: submitData,
+        }
+      );
 
       const data = await response.json();
 

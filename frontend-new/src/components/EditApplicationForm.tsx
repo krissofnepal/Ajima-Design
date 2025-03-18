@@ -24,7 +24,7 @@ export default function EditApplicationForm({ applicationId }: Props) {
         }
 
         const response = await fetch(
-          `http://localhost:5000/api/applications/${applicationId}`,
+          `https://ajima-design.onrender.com/api/applications/${applicationId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

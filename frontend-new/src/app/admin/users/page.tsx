@@ -61,7 +61,7 @@ export default function AdminUsersPage() {
       const fetchUsers = async () => {
         try {
           const response = await fetch(
-            "http://localhost:5000/api/admin/users",
+            "https://ajima-design.onrender.com/api/admin/users",
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -144,7 +144,7 @@ export default function AdminUsersPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/users/${userId}/role`,
+        `https://ajima-design.onrender.com/api/admin/users/${userId}/role`,
         {
           method: "PUT",
           headers: {
@@ -197,14 +197,17 @@ export default function AdminUsersPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/admin/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newUser),
-      });
+      const response = await fetch(
+        "https://ajima-design.onrender.com/api/admin/users",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(newUser),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to create user");
@@ -246,7 +249,7 @@ export default function AdminUsersPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/users/${userId}`,
+        `https://ajima-design.onrender.com/api/admin/users/${userId}`,
         {
           method: "DELETE",
           headers: {

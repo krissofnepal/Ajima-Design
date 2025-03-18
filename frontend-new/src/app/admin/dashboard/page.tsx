@@ -65,7 +65,7 @@ export default function AdminDashboard() {
       const fetchStats = async () => {
         try {
           const response = await fetch(
-            "http://localhost:5000/api/admin/stats",
+            "https://ajima-design.onrender.com/api/admin/stats",
             {
               headers: {
                 Authorization: `Bearer ${token}`,

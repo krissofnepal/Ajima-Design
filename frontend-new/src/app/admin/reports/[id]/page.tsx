@@ -261,7 +261,7 @@ export default function AdminReportDetailPage() {
           console.log("Fetching application with ID:", params.id);
 
           // Try the admin endpoint first
-          const adminEndpoint = `http://localhost:5000/api/admin/applications/${params.id}`;
+          const adminEndpoint = `https://ajima-design.onrender.com/api/admin/applications/${params.id}`;
           console.log("Trying admin endpoint:", adminEndpoint);
 
           const adminResponse = await fetch(adminEndpoint, {
@@ -280,7 +280,7 @@ export default function AdminReportDetailPage() {
               "falling back to regular endpoint"
             );
 
-            const regularEndpoint = `http://localhost:5000/api/applications/${params.id}`;
+            const regularEndpoint = `https://ajima-design.onrender.com/api/applications/${params.id}`;
             console.log("Trying regular endpoint:", regularEndpoint);
 
             const regularResponse = await fetch(regularEndpoint, {
@@ -412,7 +412,7 @@ export default function AdminReportDetailPage() {
     try {
       // Try the admin endpoint first
       const adminResponse = await fetch(
-        `http://localhost:5000/api/admin/applications/${application._id}/status`,
+        `https://ajima-design.onrender.com/api/admin/applications/${application._id}/status`,
         {
           method: "PUT",
           headers: {
@@ -430,7 +430,7 @@ export default function AdminReportDetailPage() {
       if (!adminResponse.ok) {
         console.log("Admin endpoint failed, falling back to regular endpoint");
         const regularResponse = await fetch(
-          `http://localhost:5000/api/applications/${application._id}/status`,
+          `https://ajima-design.onrender.com/api/applications/${application._id}/status`,
           {
             method: "PUT",
             headers: {
