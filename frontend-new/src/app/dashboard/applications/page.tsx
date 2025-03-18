@@ -68,8 +68,8 @@ export default function ApplicationsPage() {
         try {
           // Use different endpoints for admin and regular users
           const endpoint = userIsAdmin
-            ? "http://localhost:5000/api/admin/applications" // Admin endpoint to fetch all reports
-            : "http://localhost:5000/api/applications"; // Regular endpoint for user's own reports
+            ? "https://ajima-design.onrender.com/api/admin/applications" // Admin endpoint to fetch all reports
+            : "https://ajima-design.onrender.com/api/applications"; // Regular endpoint for user's own reports
 
           const response = await fetch(endpoint, {
             headers: {
@@ -84,7 +84,7 @@ export default function ApplicationsPage() {
                 "Admin endpoint not available, falling back to regular endpoint"
               );
               const regularResponse = await fetch(
-                "http://localhost:5000/api/applications",
+                "https://ajima-design.onrender.com/api/applications",
                 {
                   headers: {
                     Authorization: `Bearer ${token}`,
@@ -277,7 +277,7 @@ export default function ApplicationsPage() {
     try {
       // Try the admin endpoint first
       const adminResponse = await fetch(
-        `http://localhost:5000/api/admin/applications/${applicationId}/status`,
+        `https://ajima-design.onrender.com/api/admin/applications/${applicationId}/status`,
         {
           method: "PUT",
           headers: {
