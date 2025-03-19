@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const bcrypt = require("bcrypt");
+const nodemailer = require("nodemailer");
 
 module.exports = async function (req, res, next) {
   // Get token from header
@@ -26,6 +28,14 @@ module.exports = async function (req, res, next) {
       });
     }
 
+    // Check if user has superadmin privileges
+    if (!user.isSuperAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: insufficient privileges",
+      });
+    }
+
     // Add user to request object
     req.user = {
       id: user._id,
@@ -47,4 +57,8 @@ module.exports = async function (req, res, next) {
       message: "Token is not valid",
     });
   }
+};
+
+User.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
 };

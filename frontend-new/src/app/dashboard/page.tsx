@@ -54,7 +54,7 @@ export default function Dashboard() {
       setUser(userData);
 
       // If user is admin, fetch admin stats
-      if (userData.role === "admin") {
+      if (userData.role === "admin" || "superAdmin") {
         const fetchStats = async () => {
           try {
             const response = await fetch(
@@ -123,7 +123,7 @@ export default function Dashboard() {
   }
 
   // Render admin dashboard if user is admin
-  if (user?.role === "admin") {
+  if (user?.role === "admin" || "superAdmin") {
     return (
       <div className="min-h-screen bg-gray-100">
         {/* Navigation */}

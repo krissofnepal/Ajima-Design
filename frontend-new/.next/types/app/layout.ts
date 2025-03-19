@@ -1,4 +1,4 @@
-// File: D:\Ajima Design\ajima-website\frontend-new\src\app\layout.tsx
+// File: D:\Ajima Design\Ajima-Design\frontend-new\src\app\layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
