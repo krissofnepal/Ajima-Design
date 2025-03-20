@@ -62,18 +62,8 @@ interface Application {
   methodOfValuation?: string;
   assumptions?: string;
   observations?: string;
-  bankName?: string;
-  bankBranch?: string;
-  bankAddress?: string;
-  tableOfContents?: {
-    [key: string]: "Enclosed" | "N.A.";
-  };
-  supportingDocuments?: {
-    [key: string]: "Enclosed" | "N.A.";
-  };
 }
 
-// Tab type definition
 type TabType =
   | "cover"
   | "summary"
@@ -98,8 +88,41 @@ export default function AdminReportDetailPage() {
   const [isPrinting, setIsPrinting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("cover");
+  const [bankName, setBankName] = useState("NABIL BANK LIMITED");
+  const [bankBranch, setBankBranch] = useState("Satdobato, Lalitpur");
+  const [bankAddress, setBankAddress] = useState("");
+  const [copyType, setCopyType] = useState<"Bank" | "Customer">("Bank");
+  const [tocItems, setTocItems] = useState({
+    "Valuation certificate": "Enclosed" as const,
+    "Summary of the Property Valuation": "Enclosed" as const,
+    "Details Report of the Property Valuation": "Enclosed" as const,
+    "Land Value Calculation": "Enclosed" as const,
+    "Building Value Calculation": "Enclosed" as const,
+    "Valuation of the Property": "Enclosed" as const,
+    "Details of the Building Property": "Enclosed" as const,
+    "Method of Valuation": "Enclosed" as const,
+    "Assumptions and Special Assumptions": "Enclosed" as const,
+    "Remarks / Observations and Limiting Conditions": "Enclosed" as const,
+    Photos: "Enclosed" as const,
+    Drawing: "Enclosed" as const,
+    "Supporting Documents": "Enclosed" as const,
+  });
 
-  // Add print-specific styles
+  const [docItems, setDocItems] = useState({
+    Lalpurja: "Enclosed" as const,
+    Citizenship: "Enclosed" as const,
+    "Tax Revenue Receipt": "Enclosed" as const,
+    "Land Boundary Letter": "Enclosed" as const,
+    "Land Registration Paper": "Enclosed" as const,
+    "Srestha / Plot Register Uttar": "N.A." as const,
+    "Firm Registration": "N.A." as const,
+    "PAN/VAT": "N.A." as const,
+    "Municipal / V.D.C. Approved Drawings": "Enclosed" as const,
+    "Construction Completion Certificate": "Enclosed" as const,
+    Napimap: "Enclosed" as const,
+    Others: "Enclosed" as const,
+  });
+
   const printStyles = `
     @media print {
       @page {
@@ -175,184 +198,26 @@ export default function AdminReportDetailPage() {
     }
   `;
 
-  // Bank information state
-  const [bankName, setBankName] = useState("NABIL BANK LIMITED");
-  const [bankBranch, setBankBranch] = useState("Satdobato, Lalitpur");
-  const [bankAddress, setBankAddress] = useState("");
-  const [copyType, setCopyType] = useState<"Bank" | "Customer">("Bank");
-
-  // Table of contents state
-  const [tocItems, setTocItems] = useState({
-    "Valuation certificate": "Enclosed",
-    "Summary of the Property Valuation": "Enclosed",
-    "Details Report of the Property Valuation": "Enclosed",
-    "Land Value Calculation": "Enclosed",
-    "Building Value Calculation": "Enclosed",
-    "Valuation of the Property": "Enclosed",
-    "Details of the Building Property": "Enclosed",
-    "Method of Valuation": "Enclosed",
-    "Assumptions and Special Assumptions": "Enclosed",
-    "Remarks / Observations and Limiting Conditions": "Enclosed",
-    Photos: "Enclosed",
-    Drawing: "Enclosed",
-    "Supporting Documents": "Enclosed",
-  });
-
-  // Supporting documents state
-  const [docItems, setDocItems] = useState({
-    Lalpurja: "Enclosed",
-    Citizenship: "Enclosed",
-    "Tax Revenue Receipt": "Enclosed",
-    "Land Boundary Letter": "Enclosed",
-    "Land Registration Paper": "Enclosed",
-    "Srestha / Plot Register Uttar": "N.A.",
-    "Firm Registration": "N.A.",
-    "PAN/VAT": "N.A.",
-    "Municipal / V.D.C. Approved Drawings": "Enclosed",
-    "Construction Completion Certificate": "Enclosed",
-    Napimap: "Enclosed",
-    Others: "Enclosed",
-  });
-
-  // Define the tabs array
-  const tabs: Array<{ id: TabType; label: string }> = [
-    { id: "cover", label: "Cover Page" },
-    { id: "summary", label: "Summary" },
-    { id: "letter", label: "Letter" },
-    { id: "acceptance", label: "Acceptance" },
-    { id: "details", label: "Details" },
-    { id: "legal", label: "Legal Aspect" },
-    { id: "building", label: "Building Details" },
-    { id: "method", label: "Method of Valuation" },
-    { id: "assumptions", label: "Assumptions" },
-    { id: "observations", label: "Observations" },
-  ];
-
-  useEffect(() => {
-    // Check if user is logged in and is an admin
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    // Get user data from token
+  const generatePDF = async () => {
+    if (!reportRef.current) return;
+    setIsGeneratingPDF(true);
     try {
-      const userDataStr = localStorage.getItem("user");
-      if (!userDataStr) {
-        router.push("/login");
-        return;
-      }
-      const userData = JSON.parse(userDataStr);
-      if (!userData || !userData._id) {
-        router.push("/login");
-        return;
-      }
-
-      // Check if user is admin
-      if (userData.role !== "admin") {
-        router.push("/dashboard");
-        return;
-      }
-
-      // Fetch application details
-      const fetchApplication = async () => {
-        try {
-          console.log("Fetching application with ID:", params.id);
-
-          // Try the admin endpoint first
-          const adminEndpoint = `https://ajima-design.onrender.com/api/admin/applications/${params.id}`;
-          console.log("Trying admin endpoint:", adminEndpoint);
-
-          const adminResponse = await fetch(adminEndpoint, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          console.log("Admin endpoint response status:", adminResponse.status);
-
-          // If admin endpoint fails, fall back to regular endpoint
-          if (!adminResponse.ok) {
-            console.log(
-              "Admin endpoint failed with status:",
-              adminResponse.status,
-              "falling back to regular endpoint"
-            );
-
-            const regularEndpoint = `https://ajima-design.onrender.com/api/applications/${params.id}`;
-            console.log("Trying regular endpoint:", regularEndpoint);
-
-            const regularResponse = await fetch(regularEndpoint, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-
-            console.log(
-              "Regular endpoint response status:",
-              regularResponse.status
-            );
-
-            if (!regularResponse.ok) {
-              console.log(
-                "Regular endpoint also failed with status:",
-                regularResponse.status
-              );
-              throw new Error("Failed to fetch application details");
-            }
-
-            const data = await regularResponse.json();
-            console.log("Regular endpoint response data:", data);
-
-            if (!data || (!data.application && !data.success)) {
-              console.log("Invalid response data from regular endpoint:", data);
-              throw new Error("Invalid response data");
-            }
-
-            const applicationData = data.application || data;
-            console.log(
-              "Application data (from regular endpoint):",
-              applicationData
-            );
-            setApplication(applicationData);
-            setAdminNote(applicationData.adminNote || "");
-            return;
-          }
-
-          const data = await adminResponse.json();
-          console.log("Admin endpoint response data:", data);
-
-          if (!data || (!data.application && !data.success)) {
-            console.log("Invalid response data from admin endpoint:", data);
-            throw new Error("Invalid response data");
-          }
-
-          const applicationData = data.application || data;
-          console.log(
-            "Application data (from admin endpoint):",
-            applicationData
-          );
-          setApplication(applicationData);
-          setAdminNote(applicationData.adminNote || "");
-        } catch (err: any) {
-          console.error("Error fetching application:", err);
-          setError(
-            err.message || "An error occurred while fetching the report"
-          );
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchApplication();
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      router.push("/login");
+      const canvas = await html2canvas(reportRef.current);
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "px",
+        format: [canvas.width, canvas.height],
+      });
+      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+      pdf.save(`valuation-report-${params?.id || "unknown"}.pdf`);
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+    } finally {
+      setIsGeneratingPDF(false);
     }
-  }, [params.id, router]);
+  };
 
-  // Format date
   const formatDate = (dateString: string, format?: string) => {
     const date = new Date(dateString);
 
@@ -370,7 +235,6 @@ export default function AdminReportDetailPage() {
     });
   };
 
-  // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -379,7 +243,6 @@ export default function AdminReportDetailPage() {
     }).format(amount);
   };
 
-  // Get status badge color
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -397,7 +260,6 @@ export default function AdminReportDetailPage() {
     }
   };
 
-  // Handle status change
   const handleStatusChange = async (newStatus: string) => {
     if (!application) return;
 
@@ -410,7 +272,6 @@ export default function AdminReportDetailPage() {
     setIsSubmitting(true);
 
     try {
-      // Try the admin endpoint first
       const adminResponse = await fetch(
         `https://ajima-design.onrender.com/api/admin/applications/${application._id}/status`,
         {
@@ -426,7 +287,6 @@ export default function AdminReportDetailPage() {
         }
       );
 
-      // If admin endpoint fails, fall back to regular endpoint
       if (!adminResponse.ok) {
         console.log("Admin endpoint failed, falling back to regular endpoint");
         const regularResponse = await fetch(
@@ -449,7 +309,6 @@ export default function AdminReportDetailPage() {
 
         const data = await regularResponse.json();
 
-        // Update the application status in the UI
         setApplication({
           ...application,
           status: newStatus,
@@ -461,7 +320,6 @@ export default function AdminReportDetailPage() {
 
       const data = await adminResponse.json();
 
-      // Update the application status in the UI
       setApplication({
         ...application,
         status: newStatus,
@@ -477,11 +335,9 @@ export default function AdminReportDetailPage() {
     }
   };
 
-  // Handle print
   const handlePrint = () => {
     setIsPrinting(true);
 
-    // Apply font styles to ensure consistency before printing
     if (reportRef.current) {
       const allTextElements = reportRef.current.querySelectorAll(
         "p, h1, h2, h3, h4, h5, h6, span, td, th, div"
@@ -490,7 +346,6 @@ export default function AdminReportDetailPage() {
         (el as HTMLElement).style.fontFamily = "Arial, sans-serif";
       });
 
-      // Hide elements that should not appear in the print
       const actionColumns =
         reportRef.current.querySelectorAll(".no-print-column");
       const bankInfoForm = reportRef.current.querySelector(".bank-info-form");
@@ -507,7 +362,6 @@ export default function AdminReportDetailPage() {
     setTimeout(() => {
       window.print();
 
-      // Restore elements after printing
       setTimeout(() => {
         if (reportRef.current) {
           const actionColumns =
@@ -528,24 +382,20 @@ export default function AdminReportDetailPage() {
     }, 300);
   };
 
-  // Handle PDF download
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
 
     setIsGeneratingPDF(true);
 
     try {
-      // Create PDF document with A4 dimensions
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
       });
 
-      // First, generate the first page
       const firstPageElement = reportRef.current.cloneNode(true) as HTMLElement;
 
-      // Add print-specific styles directly to the cloned element
       const firstPageStyle = document.createElement("style");
       firstPageStyle.textContent = `
         @page {
@@ -588,7 +438,6 @@ export default function AdminReportDetailPage() {
       firstPageElement.appendChild(firstPageStyle);
       document.body.appendChild(firstPageElement);
 
-      // Hide elements that should not appear in the PDF
       const actionColumns =
         firstPageElement.querySelectorAll(".no-print-column");
       const bankInfoForm = firstPageElement.querySelector(".bank-info-form");
@@ -602,16 +451,13 @@ export default function AdminReportDetailPage() {
         (bankInfoForm as HTMLElement).style.display = "none";
       }
 
-      // Hide TOC section for first page
       if (tocSection) {
         (tocSection as HTMLElement).style.display = "none";
       }
 
-      // Position the element off-screen
       firstPageElement.style.position = "absolute";
       firstPageElement.style.left = "-9999px";
 
-      // Apply font styles to ensure consistency
       const allTextElements = firstPageElement.querySelectorAll(
         "p, h1, h2, h3, h4, h5, h6, span, td, th, div"
       );
@@ -619,7 +465,6 @@ export default function AdminReportDetailPage() {
         (el as HTMLElement).style.fontFamily = "Arial, sans-serif";
       });
 
-      // Generate first page with higher quality
       const firstPageCanvas = await html2canvas(firstPageElement, {
         scale: 3,
         useCORS: true,
@@ -627,27 +472,22 @@ export default function AdminReportDetailPage() {
         backgroundColor: "#ffffff",
       });
 
-      // Add first page to PDF
       const imgWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
       const firstPageImgData = firstPageCanvas.toDataURL("image/jpeg", 1.0);
       pdf.addImage(firstPageImgData, "JPEG", 0, 0, imgWidth, pageHeight);
 
-      // Clean up first page element
       document.body.removeChild(firstPageElement);
 
-      // Now, generate the second page with just the TOC
       const secondPageElement = reportRef.current.cloneNode(
         true
       ) as HTMLElement;
 
-      // Add print-specific styles directly to the cloned element
       const secondPageStyle = document.createElement("style");
       secondPageStyle.textContent = firstPageStyle.textContent; // Use the same styles
       secondPageElement.appendChild(secondPageStyle);
       document.body.appendChild(secondPageElement);
 
-      // Hide everything except TOC section
       const contentToHide = secondPageElement.querySelectorAll(
         ".print-content > *:not(.toc-section):not(.page-break)"
       );
@@ -655,13 +495,11 @@ export default function AdminReportDetailPage() {
         (el as HTMLElement).style.display = "none";
       });
 
-      // Make sure TOC section is visible
       const secondPageToc = secondPageElement.querySelector(".toc-section");
       if (secondPageToc) {
         (secondPageToc as HTMLElement).style.display = "block";
         (secondPageToc as HTMLElement).style.marginTop = "0";
 
-        // Apply font styles to ensure consistency
         const tocTextElements = secondPageToc.querySelectorAll(
           "p, h1, h2, h3, h4, h5, h6, span, td, th, div"
         );
@@ -670,18 +508,15 @@ export default function AdminReportDetailPage() {
         });
       }
 
-      // Hide action columns in TOC
       const tocActionColumns =
         secondPageElement.querySelectorAll(".no-print-column");
       tocActionColumns.forEach((el) => {
         (el as HTMLElement).style.display = "none";
       });
 
-      // Position the element off-screen
       secondPageElement.style.position = "absolute";
       secondPageElement.style.left = "-9999px";
 
-      // Generate second page with higher quality
       const secondPageCanvas = await html2canvas(secondPageElement, {
         scale: 3,
         useCORS: true,
@@ -689,16 +524,13 @@ export default function AdminReportDetailPage() {
         backgroundColor: "#ffffff",
       });
 
-      // Add second page to PDF
       pdf.addPage();
       const secondPageImgData = secondPageCanvas.toDataURL("image/jpeg", 1.0);
       pdf.addImage(secondPageImgData, "JPEG", 0, 0, imgWidth, pageHeight);
 
-      // Clean up second page element
       document.body.removeChild(secondPageElement);
 
-      // Save the PDF
-      pdf.save(`valuation-report-${application?.landPlotNo || "download"}.pdf`);
+      pdf.save(`valuation-report-${application?._id || "download"}.pdf`);
     } catch (err) {
       console.error("Error generating PDF:", err);
       alert("Failed to generate PDF. Please try again.");
@@ -707,7 +539,6 @@ export default function AdminReportDetailPage() {
     }
   };
 
-  // Handle table of contents toggle
   const handleTocToggle = (key: string) => {
     setTocItems((prev) => ({
       ...prev,
@@ -715,7 +546,6 @@ export default function AdminReportDetailPage() {
     }));
   };
 
-  // Handle supporting documents toggle
   const handleDocToggle = (key: string) => {
     setDocItems((prev) => ({
       ...prev,
@@ -723,7 +553,116 @@ export default function AdminReportDetailPage() {
     }));
   };
 
-  // Render cover page
+  const tabs: Array<{ id: TabType; label: string }> = [
+    { id: "cover", label: "Cover Page" },
+    { id: "summary", label: "Summary" },
+    { id: "letter", label: "Letter" },
+    { id: "acceptance", label: "Acceptance" },
+    { id: "details", label: "Details" },
+    { id: "legal", label: "Legal Aspect" },
+    { id: "building", label: "Building Details" },
+    { id: "method", label: "Method of Valuation" },
+    { id: "assumptions", label: "Assumptions" },
+    { id: "observations", label: "Observations" },
+  ];
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchApplication = async () => {
+      try {
+        console.log("Fetching application with ID:", params?.id);
+
+        const adminEndpoint = `https://ajima-design.onrender.com/api/admin/applications/${params?.id}`;
+        console.log("Trying admin endpoint:", adminEndpoint);
+
+        const adminResponse = await fetch(adminEndpoint, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("Admin endpoint response status:", adminResponse.status);
+
+        if (!adminResponse.ok) {
+          console.log(
+            "Admin endpoint failed with status:",
+            adminResponse.status,
+            "falling back to regular endpoint"
+          );
+
+          const regularEndpoint = `https://ajima-design.onrender.com/api/applications/${params?.id}`;
+          console.log("Trying regular endpoint:", regularEndpoint);
+
+          const regularResponse = await fetch(regularEndpoint, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          console.log(
+            "Regular endpoint response status:",
+            regularResponse.status
+          );
+
+          if (!regularResponse.ok) {
+            console.log(
+              "Regular endpoint also failed with status:",
+              regularResponse.status
+            );
+            throw new Error("Failed to fetch application details");
+          }
+
+          const data = await regularResponse.json();
+          console.log("Regular endpoint response data:", data);
+
+          if (!data || (!data.application && !data.success)) {
+            console.log("Invalid response data from regular endpoint:", data);
+            throw new Error("Invalid response data");
+          }
+
+          const applicationData = data.application || data;
+          console.log(
+            "Application data (from regular endpoint):",
+            applicationData
+          );
+          setApplication(applicationData);
+          setAdminNote(applicationData.adminNote || "");
+          return;
+        }
+
+        const data = await adminResponse.json();
+        console.log("Admin endpoint response data:", data);
+
+        if (!data || (!data.application && !data.success)) {
+          console.log("Invalid response data from admin endpoint:", data);
+          throw new Error("Invalid response data");
+        }
+
+        const applicationData = data.application || data;
+        console.log(
+          "Application data (from admin endpoint):",
+          applicationData
+        );
+        setApplication(applicationData);
+        setAdminNote(applicationData.adminNote || "");
+      } catch (err: any) {
+        console.error("Error fetching application:", err);
+        setError(
+          err.message || "An error occurred while fetching the report"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplication();
+  }, [params?.id, router]);
+
   const renderCoverPage = () => {
     if (!application) return null;
 
@@ -1044,7 +983,6 @@ export default function AdminReportDetailPage() {
     );
   };
 
-  // Render summary section
   const renderSummary = () => {
     if (!application) return null;
 
@@ -1099,7 +1037,6 @@ export default function AdminReportDetailPage() {
     );
   };
 
-  // Render letter section
   const renderLetter = () => {
     if (!application) return null;
 
@@ -1152,7 +1089,6 @@ export default function AdminReportDetailPage() {
     );
   };
 
-  // Render acceptance section
   const renderAcceptance = () => {
     if (!application) return null;
 
@@ -1198,7 +1134,6 @@ export default function AdminReportDetailPage() {
     );
   };
 
-  // Render details section (existing report content)
   const renderDetails = () => {
     if (!application) return null;
 
@@ -1327,7 +1262,6 @@ export default function AdminReportDetailPage() {
     );
   };
 
-  // Render legal aspect section
   const renderLegal = () => {
     if (!application) return null;
 
@@ -1392,7 +1326,6 @@ export default function AdminReportDetailPage() {
     );
   };
 
-  // Render building details section
   const renderBuilding = () => {
     if (!application) return null;
 
@@ -1445,7 +1378,6 @@ export default function AdminReportDetailPage() {
     );
   };
 
-  // Render method of valuation section
   const renderMethod = () => {
     if (!application) return null;
 
@@ -1485,7 +1417,6 @@ export default function AdminReportDetailPage() {
     );
   };
 
-  // Render assumptions and observations section
   const renderAssumptions = () => {
     if (!application) return null;
 
@@ -1544,7 +1475,6 @@ export default function AdminReportDetailPage() {
     );
   };
 
-  // Update the renderContent function to include all sections
   const renderContent = () => {
     switch (activeTab) {
       case "cover":
@@ -1595,136 +1525,142 @@ export default function AdminReportDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Navigation - Hide during printing */}
-      <nav className={`bg-gray-800 text-white shadow-md no-print`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/admin/reports"
-                className="flex items-center text-gray-300 hover:text-white transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  />
-                </svg>
-                Back to Reports
-              </Link>
-              <span className="text-gray-400">/</span>
-              <Link
-                href="/admin/dashboard"
-                className="text-gray-300 hover:text-white"
-              >
-                Dashboard
-              </Link>
-              <span className="text-gray-400">/</span>
-              <span className="text-gray-300">Report Details</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handlePrint}
-                disabled={isPrinting}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors flex items-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                  />
-                </svg>
-                {isPrinting ? "Printing..." : "Print Report"}
-              </button>
-              <button
-                onClick={handleDownloadPDF}
-                disabled={isGeneratingPDF}
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors flex items-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-              </button>
-            </div>
+    <div className="min-h-screen bg-gray-100 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Valuation Report</h1>
+          <div className="flex space-x-4">
+            <Link
+              href={`/dashboard/applications/edit/${params?.id}`}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Edit Report
+            </Link>
+            <button
+              onClick={generatePDF}
+              disabled={isGeneratingPDF}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+            >
+              {isGeneratingPDF ? "Generating PDF..." : "Generate PDF"}
+            </button>
           </div>
         </div>
-      </nav>
-
-      {/* Main Content */}
-      <div
-        className={`max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 ${
-          isPrinting ? "p-0 max-w-none" : ""
-        }`}
-      >
-        {/* Tab Navigation - Hide during printing */}
-        <div className={`mb-8 bg-white shadow rounded-lg no-print`}>
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex space-x-1 border-b border-gray-200 overflow-x-auto">
-              {tabs.map((tab) => (
+        {/* Navigation - Hide during printing */}
+        <nav className={`bg-gray-800 text-white shadow-md no-print`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16">
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/admin/reports"
+                  className="flex items-center text-gray-300 hover:text-white transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    />
+                  </svg>
+                  Back to Reports
+                </Link>
+                <span className="text-gray-400">/</span>
+                <Link
+                  href="/admin/dashboard"
+                  className="text-gray-300 hover:text-white"
+                >
+                  Dashboard
+                </Link>
+                <span className="text-gray-400">/</span>
+                <span className="text-gray-300">Report Details</span>
+              </div>
+              <div className="flex items-center space-x-4">
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors duration-200 ${
-                    activeTab === tab.id
-                      ? "bg-white text-blue-600 border-b-2 border-blue-600"
-                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                  }`}
+                  onClick={handlePrint}
+                  disabled={isPrinting}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors flex items-center"
                 >
-                  {tab.label}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                    />
+                  </svg>
+                  {isPrinting ? "Printing..." : "Print Report"}
                 </button>
-              ))}
+                <button
+                  onClick={handleDownloadPDF}
+                  disabled={isGeneratingPDF}
+                  className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors flex items-center"
+                >
+                  {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </nav>
 
-        {/* Content Area */}
+        {/* Main Content */}
         <div
-          className={`bg-white rounded-lg shadow-lg ${
-            isPrinting ? "shadow-none" : ""
+          className={`max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 ${
+            isPrinting ? "p-0 max-w-none" : ""
           }`}
-          ref={reportRef}
         >
-          {loading ? (
-            <div className="flex justify-center items-center h-96">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          {/* Tab Navigation - Hide during printing */}
+          <div className={`mb-8 bg-white shadow rounded-lg no-print`}>
+            <div className="px-4 sm:px-6 lg:px-8">
+              <div className="flex space-x-1 border-b border-gray-200 overflow-x-auto">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors duration-200 ${
+                      activeTab === tab.id
+                        ? "bg-white text-blue-600 border-b-2 border-blue-600"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : error ? (
-            <div className="p-8 text-center text-red-600">
-              <p className="text-xl font-semibold mb-2">Error</p>
-              <p>{error}</p>
-            </div>
-          ) : (
-            renderContent()
-          )}
+          </div>
+
+          {/* Content Area */}
+          <div
+            className={`bg-white rounded-lg shadow-lg ${
+              isPrinting ? "shadow-none" : ""
+            }`}
+            ref={reportRef}
+          >
+            {loading ? (
+              <div className="flex justify-center items-center h-96">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : error ? (
+              <div className="p-8 text-center text-red-600">
+                <p className="text-xl font-semibold mb-2">Error</p>
+                <p>{error}</p>
+              </div>
+            ) : (
+              renderContent()
+            )}
+          </div>
         </div>
       </div>
     </div>
