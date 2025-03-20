@@ -58,7 +58,3 @@ module.exports = async function (req, res, next) {
     });
   }
 };
-
-User.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};

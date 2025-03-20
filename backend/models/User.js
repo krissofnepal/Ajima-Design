@@ -36,6 +36,14 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    resetToken: {
+      type: String,
+      default: null,
+    },
+    resetTokenExpiry: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -60,7 +68,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
-    throw error;
+    throw new Error("Error comparing passwords");
   }
 };
 
@@ -68,31 +76,23 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 userSchema.statics.createSuperAdmin = async function () {
   try {
     console.log("Checking for existing superadmin...");
-    const superadmin = await this.findOne({ role: "superadmin" });
+    const superadmin = await this.findOne({ isSuperAdmin: true });
+
     if (!superadmin) {
-      console.log("No superadmin found. Creating new superadmin...");
-      const newSuperAdmin = new this({
-        username: "prabesh",
-        email: "prabesh@ajimadesign.com",
-        password: "Ajima@123", // This will be hashed automatically
+      console.log("No superadmin found. Creating one...");
+      await this.create({
+        username: process.env.SUPERADMIN_USERNAME || "superadmin",
+        email: process.env.SUPERADMIN_EMAIL || "superadmin@example.com",
+        password: process.env.SUPERADMIN_PASSWORD || "superadmin123",
         role: "superadmin",
         isSuperAdmin: true,
       });
-      await newSuperAdmin.save();
-      console.log("Superadmin created successfully:", {
-        username: newSuperAdmin.username,
-        email: newSuperAdmin.email,
-        role: newSuperAdmin.role,
-      });
+      console.log("Superadmin created successfully");
     } else {
-      console.log("Superadmin already exists:", {
-        username: superadmin.username,
-        email: superadmin.email,
-        role: superadmin.role,
-      });
+      console.log("Superadmin already exists");
     }
   } catch (error) {
-    console.error("Error in createSuperAdmin:", error);
+    console.error("Error creating superadmin:", error);
   }
 };
 
